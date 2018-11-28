@@ -1,0 +1,87 @@
+const express=require("express");
+const pool=require("./pool");
+const bodyParser=require('body-parser');
+const session = require('express-session');
+var app=express();
+const cors=require("cors");
+/*app.use(cors({
+  origin:["http://127.0.0.1:3001","http://localhost:3001"],
+  credentials:true
+}))*/
+app.use(bodyParser.urlencoded({
+	extended:false
+}));
+app.use(express.static(__dirname+"/public"));
+app.listen(4000,(req,res)=>{
+  console.log("ok");
+});
+app.get("/bannerlist",(req,res)=>{
+  var obj=[
+    {id:1,img_url:"http://127.0.0.1:4000/img/banner1.jpg"},
+    {id:2,img_url:"http://127.0.0.1:4000/img/banner2.jpg"},
+    {id:3,img_url:"http://127.0.0.1:4000/img/banner3.jpg"},
+  ];
+  res.send(obj)
+});
+app.get("/recommend",(req,res)=>{
+    var sql="select pic,title,details,price from recommend";
+	pool.query(sql,[],(err,result)=>{
+	  if(err) console.log(err)
+	  res.send(result)
+	})
+});
+app.get("/getbooks",(req,res)=>{
+   var sql="select id,pic,title,price from shop";
+   pool.query(sql,[],(err,result)=>{
+     if(err) console.log(err) 
+		 res.send(result)
+   })
+});
+app.post("/search",(req,res)=>{
+   var value=req.body.value;
+   var text=req.body.text;
+   var grade=req.body.grade;
+   var content=req.body.content;
+   console.log(content)
+   if(text!=""){
+    var sql=`select pic,title,price from shop where project like '%${text}%'`
+    pool.query(sql,[],(err,result)=>{
+       if(err) console.log(err)
+       res.send(result)
+    })
+   }
+   else if(value!=""){
+     var sql=`select pic,title,price from shop where project like '%${value}%' or title like '%${value}%' or grade like '%${value}%' or version like '%${value}%'`;
+     pool.query(sql,[],(err,result)=>{
+      if(err) console.log(err)
+      res.send(result)
+    })
+   }
+  else if(grade!=""){
+     var sql=`select pic,title,price,grade from shop where grade like '%${grade}%' or title like '%${grade}%'`;
+     pool.query(sql,[],(err,result)=>{
+       if(err) console.log(err)
+       res.send(result)
+     })
+   }
+});
+app.get('/explore',(req,res)=>{
+  var content=req.query.content;
+  if(content!=""){
+    var sql =`select pic,title,grade from shop where title like '%${content}%' or grade like '%${content}%' or project like '%${content}%' or version like '%${content}%'`;
+    pool.query(sql,[],(err,result)=>{
+      if(err) console.log(err)
+      res.send(result)
+    })
+  }
+});
+app.get('/dd',(req,res)=>{
+   var sql="select * from dd";
+   pool.query(sql,[],(err,result)=>{
+     if(err) {console.log(err)}
+     res.send(result)
+   })
+})
+
+
+
